@@ -1,0 +1,49 @@
+# Example: split-loops.yaml
+# Demonstrates a loop split occuring due to a reduction.
+# Such splits are automatically identified by hfav.
+
+kernels:
+
+    sum:
+        declaration: sum(double x, double &xSum);
+        inputs: |
+            x: x[i][j]
+        outputs: |
+            xSum: reduction(+:xSum)
+
+    normalize:
+        declaration: normalize(double& x, double& xSum);
+        inputs: |
+            x: x[i?][j?]
+            xSum: xSum
+        outputs: |
+            x: normalized(x[i?][j?])
+
+globals:
+
+    inputs: |
+        double x[i?][j?]
+
+    outputs: |
+        double xSum
+        normalized(x[i][j]) => double x[i][j]
+
+codegen options:
+
+    loops:
+    -
+        iter_ident: i
+        start: first_i
+        end: last_i
+        stride: 1
+    -
+        iter_ident: j
+        start: first_j
+        end: last_j
+        stride: 1
+
+    loop order: [i, j]
+
+    language: C99
+    prefix: __hfav_
+    vector loop: None

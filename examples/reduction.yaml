@@ -1,0 +1,39 @@
+# Example: sum.yaml
+# Demonstrates usage of reduction(+:) syntax.
+
+kernels:
+
+    sum:
+        declaration: sum(double x, double &xSum);
+        inputs: |
+            x: x[i][j]
+        outputs: |
+            xSum: reduction(+:xSum)
+
+globals:
+
+    inputs: |
+        double x[i?][j?]
+
+    outputs: |
+        double xSum
+
+codegen options:
+
+    loops:
+    -
+        iter_ident: i
+        start: first_i
+        end: last_i
+        stride: 1
+    -
+        iter_ident: j
+        start: first_j
+        end: last_j
+        stride: 1
+
+    loop order: [i, j]
+
+    language: C99
+    prefix: __hfav_
+    vector loop: None

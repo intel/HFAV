@@ -1,0 +1,217 @@
+kernels:
+
+  rcp:
+    declaration: REAL_T rcp(REAL_T x);
+    inputs: |
+      x : q?
+    outputs: |
+      <return> : rcp(q?)
+
+  constoprim:
+    declaration: conservative_to_primitive(REAL_T &prim_rho, REAL_T &inv_prim_rho, REAL_T& prim_u, REAL_T &prim_v, REAL_T &E_internal, REAL_T cons_rho, REAL_T cons_rhou, REAL_T cons_rhov, REAL_T cons_E);
+    inputs: |
+      cons_rho  : rho[j?][i?]              # cell (x0, x1)
+      cons_rhou : rhou[j?][i?]             # cell (x0, x1)
+      cons_rhov : rhov[j?][i?]             # cell (x0, x1)
+      cons_E    : E[j?][i?]                # cell (x0, x1)
+    outputs: |
+      prim_rho     : prim_rho[j?][i?]      # cell (x0, x1)
+      inv_prim_rho : inv_prim_rho[j?][i?]  # cell (x0, x1)
+      prim_u       : prim_u[j?][i?]        # cell (x0, x1)
+      prim_v       : prim_v[j?][i?]        # cell (x0, x1)
+      E_internal   : Einternal[j?][i?]     # cell (x0, x1)
+
+  new_constoprim:
+    declaration: conservative_to_primitive(REAL_T &prim_rho, REAL_T &inv_prim_rho, REAL_T& prim_u, REAL_T &prim_v, REAL_T &E_internal, REAL_T cons_rho, REAL_T cons_rhou, REAL_T cons_rhov, REAL_T cons_E);
+    inputs: |
+      cons_rho  : new(rho[j?][i?])              # cell (x0, x1)
+      cons_rhou : new(rhou[j?][i?])             # cell (x0, x1)
+      cons_rhov : new(rhov[j?][i?])             # cell (x0, x1)
+      cons_E    : new(E[j?][i?])                # cell (x0, x1)
+    outputs: |
+      prim_rho     : new(prim_rho[j?][i?])      # cell (x0, x1)
+      inv_prim_rho : new(inv_prim_rho[j?][i?])  # cell (x0, x1)
+      prim_u       : new(prim_u[j?][i?])        # cell (x0, x1)
+      prim_v       : new(prim_v[j?][i?])        # cell (x0, x1)
+      E_internal   : new(Einternal[j?][i?])     # cell (x0, x1)
+
+  eqstate:
+    declaration: REAL_T equation_of_state(REAL_T rho, REAL_T Einternal);
+    inputs: |
+      rho       : prim_rho[j?][i?]   # cell (x0, x1)
+      Einternal : Einternal[j?][i?]  # cell (x0, x1)
+    outputs: |
+      <return> : prim_p[j?][i?]     # cell (x0, x1)
+
+  new_eqstate:
+    declaration: REAL_T equation_of_state(REAL_T rho, REAL_T Einternal);
+    inputs: |
+      rho       : new(prim_rho[j?][i?])   # cell (x0, x1)
+      Einternal : new(Einternal[j?][i?])  # cell (x0, x1)
+    outputs: |
+      <return> : new(prim_p[j?][i?])     # cell (x0, x1)
+
+  sound:
+    declaration: REAL_T speed_of_sound(REAL_T inv_rho, REAL_T p);
+    inputs: |
+      inv_rho : inv_prim_rho[j?][i?] # cell (x0, x1)
+      p       : prim_p[j?][i?]       # cell (x0, x1)
+    outputs: |
+      <return> : prim_c[j?][i?]       # cell (x0, x1)
+
+  new_sound:
+    declaration: REAL_T speed_of_sound(REAL_T inv_rho, REAL_T p);
+    inputs: |
+      inv_rho : new(inv_prim_rho[j?][i?]) # cell (x0, x1)
+      p       : new(prim_p[j?][i?])       # cell (x0, x1)
+    outputs: |
+      <return> : new(prim_c[j?][i?])       # cell (x0, x1)
+
+
+  # Slope is computed for v = 0, 1, 2, 3 (prim_rho, prim_u, prim_v, prim_p)
+  slope:
+    declaration: REAL_T slope(REAL_T qm1, REAL_T q0, REAL_T qp1, REAL_T slope_type, REAL_T inv_slope_type);
+    inputs: |
+      qm1 : q?[j?][i?-1]      # cell (x-1, x0)
+      q0  : q?[j?][i?  ]      # cell (x0, x1)
+      qp1 : q?[j?][i?+1]      # cell (x1, x2)
+    outputs: |
+      <return> : delta(q?[j?][i?])  # cell (x0, x1)
+
+  # Handling of rcp(c) is terrible here.
+  rtrace:
+    declaration: rtrace(REAL_T& flux_rho_p, REAL_T& flux_u_p, REAL_T& flux_v_p, REAL_T& flux_p_p, REAL_T rho, REAL_T inv_rho, REAL_T u, REAL_T v, REAL_T p, REAL_T drho, REAL_T du, REAL_T dv, REAL_T dp, REAL_T c, REAL_T inv_c, REAL_T dtdx);
+    inputs: |
+      rho : prim_rho[j?][i?]            # cell (x0, x1)
+      inv_rho : inv_prim_rho[j?][i?]    # cell (x0, x1)
+      u : prim_u[j?][i?]                # cell (x0, x1)
+      v : prim_v[j?][i?]                # cell (x0, x1)
+      p : prim_p[j?][i?]                # cell (x0, x1)
+      drho : delta(prim_rho[j?][i?])    # cell (x0, x1)
+      du : delta(prim_u[j?][i?])        # cell (x0, x1)
+      dv : delta(prim_v[j?][i?])        # cell (x0, x1)
+      dp : delta(prim_p[j?][i?])        # cell (x0, x1)
+      c : prim_c[j?][i?]                # cell (x0, x1)
+      inv_c : rcp(prim_c[j?][i?])       # cell (x0, x1)
+    outputs: |
+      flux_rho_p : rflux(rho[j?][i?])   # interface x0
+      flux_u_p   : rflux(u[j?][i?])     # interface x0
+      flux_v_p   : rflux(v[j?][i?])     # interface x0
+      flux_p_p   : rflux(p[j?][i?])     # interface x0
+
+  ltrace:
+    declaration: ltrace(REAL_T& flux_rho_m, REAL_T& flux_u_m, REAL_T& flux_v_m, REAL_T& flux_p_m, REAL_T rho, REAL_T inv_rho, REAL_T u, REAL_T v, REAL_T p, REAL_T drho, REAL_T du, REAL_T dv, REAL_T dp, REAL_T c, REAL_T inv_c, REAL_T dtdx);
+    inputs: |
+      rho : prim_rho[j?][i?-1]          # cell (x0, x1)
+      inv_rho : inv_prim_rho[j?][i?-1]  # cell (x0, x1)
+      u : prim_u[j?][i?-1]              # cell (x0, x1)
+      v : prim_v[j?][i?-1]              # cell (x0, x1)
+      p : prim_p[j?][i?-1]              # cell (x0, x1)
+      drho : delta(prim_rho[j?][i?-1])  # cell (x0, x1)
+      du : delta(prim_u[j?][i?-1])      # cell (x0, x1)
+      dv : delta(prim_v[j?][i?-1])      # cell (x0, x1)
+      dp : delta(prim_p[j?][i?-1])      # cell (x0, x1)
+      c : prim_c[j?][i?-1]              # cell (x0, x1)
+      inv_c : rcp(prim_c[j?][i?-1])     # cell (x0, x1)
+    outputs: |
+      flux_rho_m : lflux(rho[j?][i?]) # interface x1
+      flux_u_m   : lflux(u[j?][i?])   # interface x1
+      flux_v_m   : lflux(v[j?][i?])   # interface x1
+      flux_p_m   : lflux(p[j?][i?])   # interface x1
+
+  riemann:
+    declaration: riemann(REAL_T& gdnv_rho, REAL_T& gdnv_u, REAL_T& gdnv_v, REAL_T& gdnv_p, REAL_T in_left_rho, REAL_T in_left_u, REAL_T in_left_v, REAL_T in_left_p, REAL_T in_right_rho, REAL_T in_right_u, REAL_T in_right_v, REAL_T in_right_p);
+    inputs: |
+      in_left_rho  : lflux(rho[j?][i?])  # interface x0
+      in_left_u    : lflux(u[j?][i?])    # interface x0
+      in_left_v    : lflux(v[j?][i?])    # interface x0
+      in_left_p    : lflux(p[j?][i?])    # interface x0
+      in_right_rho : rflux(rho[j?][i?])  # interface x0
+      in_right_u   : rflux(u[j?][i?])    # interface x0
+      in_right_v   : rflux(v[j?][i?])    # interface x0
+      in_right_p   : rflux(p[j?][i?])    # interface x0
+    outputs: |
+      gdnv_rho : gdnv(rho[j?][i?])      # interface x0
+      gdnv_u   : gdnv(u[j?][i?])        # interface x0
+      gdnv_v   : gdnv(v[j?][i?])        # interface x0
+      gdnv_p   : gdnv(p[j?][i?])        # interface x0
+
+  cmpflx:
+    declaration: cmpflx(REAL_T& flux_rho, REAL_T& flux_rhou, REAL_T& flux_rhov, REAL_T& flux_E, REAL_T gdnv_rho, REAL_T gdnv_u, REAL_T gdnv_v, REAL_T gdnv_p);
+    inputs: |
+      gdnv_rho : gdnv(rho[j?][i?])     # interface x0
+      gdnv_u   : gdnv(u[j?][i?])       # interface x0
+      gdnv_v   : gdnv(v[j?][i?])       # interface x0
+      gdnv_p   : gdnv(p[j?][i?])       # interface x0
+    outputs: |
+      flux_rho  : flux(rho[j?][i?])    # interface x0
+      flux_rhou : flux(rhou[j?][i?])   # interface x0
+      flux_rhov : flux(rhov[j?][i?])   # interface x0
+      flux_E    : flux(E[j?][i?])      # interface x0
+
+  update:
+    declaration: REAL_T update(REAL_T in, REAL_T flux_left, REAL_T flux_right, REAL_T dtdx);
+    inputs: |
+      in : q?[j?][i?]                  # cell (x0, x1)
+      flux_left  : flux(q?[j?][i?])    # interface x0
+      flux_right : flux(q?[j?][i?+1])  # interface x1
+    outputs: |
+      <return> : new(q?[j?][i?])            # cell (x0, x1)
+
+  courant:
+    declaration: hfav_courant(REAL_T& cfl, REAL_T u, REAL_T v, REAL_T c);
+    inputs: |
+      u : new(prim_u[j?][i?])
+      v : new(prim_v[j?][i?])
+      c : new(prim_c[j?][i?])
+    outputs: |
+      cfl : cfl[j?][i?]
+
+  max_courant:
+    declaration: max_courant(REAL_T cfl, REAL_T& courantv);
+    inputs: |
+      cfl: cfl[j][i]
+    outputs: |
+      courantv: reduction(max:courantv)
+
+globals:
+    inputs: |
+      REAL_T rho[j?][i?]
+      REAL_T rhou[j?][i?]
+      REAL_T rhov[j?][i?]
+      REAL_T E[j?][i?]
+
+    outputs: |
+      new(rho[j][i])  => REAL_T rho[j][i]
+      new(rhou[j][i]) => REAL_T rhou[j][i]
+      new(rhov[j][i]) => REAL_T rhov[j][i]
+      new(E[j][i])    => REAL_T E[j][i]
+      courantv => REAL_T courantv
+
+codegen options:
+    header: |
+      static void gen_xstrip(REAL_T &courantv, const int ystride, const int istart, const int iend, const int jstart, const int jend, REAL_T (*rho)[ystride], REAL_T (*rhou)[ystride], REAL_T (*rhov)[ystride], REAL_T (*E)[ystride], const REAL_T slope_type, const REAL_T inv_slope_type, const REAL_T dtdx)
+      {
+    footer: |
+      }
+    loops:
+    -
+      iter_ident: i
+      start: istart
+      end: iend
+      stride: 1
+    -
+      iter_ident: j
+      start: jstart
+      end: jend
+      stride: 1
+    loop order : [j, i]
+
+    vector loop  : i
+
+    language     : C99
+    types:
+      REAL_T : double
+
+    prefix       : __hfav_
+    output file  : hydro2d-x-gen.hpp

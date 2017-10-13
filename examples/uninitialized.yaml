@@ -1,0 +1,29 @@
+# Example: uninitizalized.yaml
+# Demonstrates usage of unintialized variables.
+
+kernels:
+
+    set_to_zero:
+        declaration: set_to_zero(double &x);
+        outputs: |
+            x: zero(q?)
+
+globals:
+
+    outputs: |
+        zero(x[i]) => double x[i]
+
+codegen options:
+
+    loops:
+    -
+        iter_ident: i
+        start: first_cell_x
+        end: last_cell_x
+        stride: 1
+
+    loop order: [i]
+
+    language: C99
+    prefix: __hfav_
+    vector loop: None

@@ -1,0 +1,45 @@
+# Example: laplace5.yaml
+# Demonstrates integration of generated laplace5 kernel into application code.
+
+kernels:
+
+    laplace:
+        declaration: laplace5(double n, double e, double s, double w, double self, double &out);
+        inputs: |
+            n    : q?[j?-1][i?]
+            e    : q?[j?][i?+1]
+            s    : q?[j?+1][i?]
+            w    : q?[j?][i?-1]
+            self : q?[j?][i?]
+        outputs: |
+            out : laplace(q?[j?][i?])
+
+globals:
+
+    inputs: |
+        double g_cell[j?][i?] => cell[j?][i?]
+    outputs: |
+        laplace(cell[j][i]) => double g_cell[j][i]
+
+codegen options:
+    header: |
+      static void inplace_laplace(const int GD, double g_cell[restrict][GD+2], int istart, int iend, int jstart, int jend)
+      {
+    footer: |
+      }
+    loops:
+      -
+        iter_ident: i
+        start: istart
+        end: iend
+        stride: 1
+      -
+        iter_ident: j
+        start: jstart
+        end: jend
+        stride: 1
+    loop order: [j, i]
+    language   : C99
+    vector loop: i
+    prefix     : __hfav_
+    output file: laplace5-gen.hpp

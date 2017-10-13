@@ -1,0 +1,58 @@
+# Example: vectorization-inner.yaml
+# Demonstrates usage of "vector loop" to vectorize an inner loop.
+
+kernels:
+
+    flux_x:
+        declaration: flux(cell_t lc, cell_t rc, flux_t &fx);
+        inputs: |
+            lc : q?[j?-1][i?]
+            rc : q?[j?][i?]
+        outputs: |
+            fx : flux_x(q?[j?][i?])
+
+    integrate:
+        declaration: integrate(flux_t lf, flux_t rf, cell_t &ic);
+        inputs: |
+            lf : flux_x(q?[j?][i?])
+            rf : flux_x(q?[j?+1][i?])
+        outputs: |
+            ic : integrated(q?[j?][i?])
+
+    clamp:
+        declaration: clamp(cell_t in, int &out);
+        inputs: |
+            in : q?
+        outputs: |
+            out : clamped(q?)
+
+globals:
+
+    inputs: |
+        double d_cell[j?][i?] => cell[j?][i?]
+    outputs: |
+        clamped(integrated(cell[j][i])) => int i_cell[j][i]
+
+codegen options:
+
+    loops:
+    -
+      iter_ident: i
+      start: first_i
+      end: last_i
+      stride: 1
+    -
+      iter_ident: j
+      start: first_j
+      end: last_j
+      stride: 1
+
+    loop order: [j, i]
+
+    language   : C99
+    vector loop: i
+    prefix     : __hfav_
+    types:
+        cell_t: float64
+        flux_t: float
+        clamp_t: int32

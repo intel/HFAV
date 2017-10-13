@@ -1,0 +1,42 @@
+# Example: constants.yaml
+# Demonstrates usage of scalar constants (dt).
+
+kernels:
+
+    update:
+        declaration: update(double dt, double om1, double old, double op1, double &new);
+        inputs: |
+            dt: dt
+            om1: old[j?][i?-1]
+            old: old[j?][i?]
+            op1: old[j?][i?+1]
+        outputs: |
+            new: new[j?][i?]
+
+globals:
+
+    inputs: |
+        double dt
+        double cell[j?][i?] => old[j?][i?]
+    outputs: |
+        new[j][i] => double cell[j][i]
+
+codegen options:
+
+    loops:
+    -
+        iter_ident: i
+        start: first_i
+        end: last_i
+        stride: 1
+    -
+        iter_ident: j
+        start: first_j
+        end: last_j
+        stride: 1
+
+    loop order: [j, i]
+
+    language: C99
+    prefix: __hfav_
+    vector loop: None

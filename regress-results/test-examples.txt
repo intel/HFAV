@@ -1,0 +1,12 @@
+examples/boundary-conditions.yaml
+examples/broadcast.yaml
+examples/constants.yaml
+examples/hydro2d/hydro2d-x.yaml
+examples/hydro2d/hydro2d-y.yaml
+examples/laplace5/laplace5.yaml
+examples/literals.yaml
+examples/reduction.yaml
+examples/split-loops.yaml
+examples/uninitialized.yaml
+examples/vectorization-inner.yaml
+examples/vectorization-outer.yaml

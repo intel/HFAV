@@ -1,0 +1,8 @@
+#!/bin/bash
+
+BUILD_NAME=$(uname -n)
+BUILD_MACHINE=$(uname -m)
+BUILD_SYSTEM=$(uname -s)
+BUILD_RELEASE=$(uname -r)
+
+echo "$BUILD_NAME-$BUILD_MACHINE-$BUILD_SYSTEM-$BUILD_RELEASE"

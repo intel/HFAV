@@ -1,0 +1,44 @@
+#!/bin/bash
+
+LF='
+'
+
+GITDIR="$PWD"
+OUTDIR="$PWD"
+if  test x"$2" != x""
+then
+    OUTDIR="$2"
+fi
+if test x"$1" != x""
+then
+    GITDIR="$1"
+fi
+
+# First see if there is a version file (included in release tarballs),
+# then try git-describe, then default.
+if test x"$(git -C $GITDIR rev-parse --git-dir 2>/dev/null)" != x""
+	then
+	VN=$(git -C $GITDIR describe --abbrev=4 HEAD 2>/dev/null)
+	if test x"$VN" == x"" -o x"$VN" == x"$LF"
+	then
+	VN=$(git -C $GITDIR log --pretty=format:"%h" -n 1)
+	fi
+	git update-index -q --refresh >/dev/null 2>/dev/null
+	test -z "$(git -C $GITDIR diff-index --name-only HEAD --)" ||
+	VN="$VN.dirty"
+	echo "$VN"> $OUTDIR/version.cand
+	if test ! -f $OUTDIR/version -o -n "$(diff -q $OUTDIR/version.cand $OUTDIR/version 2>/dev/null)"
+	then
+	    echo "$VN"> $OUTDIR/version
+	fi
+	rm -rf $OUTDIR/version.cand
+else
+    if test -f $OUTDIR/version
+    then
+	VN=$(cat $OUTDIR/version)
+    else
+	VN="unknown"
+    fi
+fi
+
+echo $(expr "$VN" : v*'\(.*\)')

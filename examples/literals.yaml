@@ -1,0 +1,44 @@
+# Example: literals.yaml
+# Demonstrates usage of literals to modify indices passed to functions.
+# This functionality has only been tested with very simple expressions, e.g. +/- 1
+
+kernels:
+
+    update:
+        declaration: update(int im1, int i, int ip1, double om1, double old, double op1, double &new);
+        inputs: |
+            im1: i?-1
+            i  : i?
+            ip1: i?+1
+            om1: old[j?][i?-1]
+            old: old[j?][i?]
+            op1: old[j?][i?+1]
+        outputs: |
+            new: new[j?][i?]
+
+globals:
+
+    inputs: |
+        double cell[j?][i?] => old[j?][i?]
+    outputs: |
+        new[j][i] => double cell[j][i]
+
+codegen options:
+
+    loops:
+    -
+        iter_ident: i
+        start: first_i
+        end: last_i
+        stride: 1
+    -
+        iter_ident: j
+        start: first__j
+        end: last__j
+        stride: 1
+
+    loop order: [j, i]
+
+    language: C99
+    prefix: __hfav_
+    vector loop: None

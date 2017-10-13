@@ -1,0 +1,49 @@
+# Example: broadcast.yaml
+# Demonstrates re-use of lower-dimensionality quantities across dimensions.
+
+kernels:
+
+    compute_slice:
+        declaration: compute_slice(double in, double& out);
+        inputs: |
+            in: input[i?][j?]
+        outputs: |
+            out: slice[i?][j?]
+
+    broadcast:
+        declaration: broadcast(double slice, double& cube);
+        inputs: |
+            slice: slice[i?][j?]
+        outputs: |
+            cube: cube[i?][j?][k?]
+
+globals:
+    inputs: |
+        double input[i?][j?]
+    outputs: |
+        cube[i][j][k] => double output[i][j][k]
+
+codegen options:
+
+    loops:
+    -
+        iter_ident: i
+        start: first_i
+        end: last_i
+        stride: 1
+    -
+        iter_ident: j
+        start: first_j
+        end: last_j
+        stride: 1
+    -
+        iter_ident: k
+        start: first_k
+        end: last_k
+        stride: 1
+
+    loop order: [i, j, k]
+
+    language: C99
+    prefix: __hfav_
+    vector loop: None

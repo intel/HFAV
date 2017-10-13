@@ -1,0 +1,67 @@
+# Example: boundary-conditions.yaml
+# Demonstrates usage of "code blocks" to implement boundary conditions.
+# The "code blocks" functionality is very brittle, and may break unexpectedly.
+
+kernels:
+
+    flux_x:
+        declaration: flux(cell_t lc, cell_t rc, flux_t &fx);
+        inputs: |
+            lc : cell[j?-1][i?]
+            rc : cell[j?][i?]
+        outputs: |
+            fx : flux_x[j?][i?]
+
+    integrate:
+        declaration: integrate(flux_t lf, flux_t rf, cell_t &ic);
+        inputs: |
+            lf : boundary(flux_x[j?][i?])
+            rf : boundary(flux_x[j?+1][i?])
+        outputs: |
+            ic : integrated(cell[j?][i?])
+
+# Code blocks contain arbitrary user code (e.g. MPI)
+# Inputs and outputs can contain wildcards and ranges, and can optionally redirect to a global variable.
+# The user is responsible for ensuring that:
+#   1) References to hfav temporaries use appropriately mangled names; and/or
+#   2) Appropriate rules are in place to move data between hfav temporaries and global variables.
+code blocks:
+    exchange_fluxes:
+        code: |
+            exchange_fluxes(__hfav_flux_x, __hfav_boundary_flux_x);
+        inputs: |
+            flux_t flux_x[j*][i*]
+        outputs: |
+            flux_t boundary(flux_x[j?-1:+1][i?])
+
+globals:
+
+    inputs: |
+        cell_t d_cell[j?][i?] => cell[j?][i?]
+
+    outputs: |
+        integrated(cell[j][i]) => cell_t d_cell[j][i]
+
+codegen options:
+
+    loops:
+    -
+      iter_ident: i
+      start: first_i
+      end: last_i
+      stride: 1
+    -
+      iter_ident: j
+      start: first_j
+      end: last_j
+      stride: 1
+
+    loop order: [j, i]
+
+    language   : C99
+    vector loop: None
+    prefix     : __hfav_
+    types:
+        cell_t: float64
+        flux_t: float
+        clamp_t: int32

@@ -1,0 +1,8 @@
+*.pyc
+*.dot
+*.png
+*.asm
+*.optrpt
+*.o
+*.mod
+*.out

@@ -1,0 +1,11 @@
+*~
+run-tile
+run-gen
+compare
+version
+Dep/
+Hydro.pvd
+*.idx
+*.pak
+hydro2d-x-gen.hpp
+hydro2d-y-gen.hpp

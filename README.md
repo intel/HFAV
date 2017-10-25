@@ -42,6 +42,15 @@ The YAML format accepted by hfav is best understood by looking at examples. See 
 
 The `hydro2d/` directory contains a more comprehensive example complete with Makefile integration.
 
+More information
+----------------
+
+A paper on the ideas behind HFAV will be presented at the Seventh Internation Workshop on Domain-Specific Languages and High-Level Framworks for High Performance Computing (WOLFHPC) at ACM/IEEE Supercomputing in Denver in November 2017.
+
+    Jason D. Sewall and Simon J. Pennycook. 2017. High-Performance Code Generation though Fusion and Vectorization. To be presented at WOLFHPC 2017, Denver. Nobember 2017.
+
+A preprint is available at arXiv: [https://arxiv.org/abs/1710.08774](https://arxiv.org/abs/1710.08774).
+
 Contributors
 ------------
 
